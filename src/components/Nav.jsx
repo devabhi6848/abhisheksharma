@@ -35,7 +35,9 @@ export default function Nav() {
         ))}
         <li>
           <a
-            href="/resume.pdf"
+            href="/latestporfolio/resume.png"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-sm text-white/50 hover:text-white transition-colors duration-300 tracking-wide"
           >
             Resume
