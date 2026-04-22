@@ -11,7 +11,14 @@ node_modules
 dist
 dist-ssr
 *.local
-.src
+
+# Source code — keep private
+src/
+index.html
+vite.config.js
+tailwind.config.js
+postcss.config.js
+eslint.config.js
 
 # Editor directories and files
 .vscode/*
