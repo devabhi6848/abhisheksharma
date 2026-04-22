@@ -1,3 +1,4 @@
+import { ThemeProvider, useTheme } from './context/ThemeContext'
 import Nav from './components/Nav'
 import Hero from './components/Hero'
 import Work from './components/Work'
@@ -5,9 +6,10 @@ import Products from './components/Products'
 import About from './components/About'
 import Contact from './components/Contact'
 
-export default function App() {
+function AppInner() {
+  const { dark } = useTheme()
   return (
-    <div className="grain bg-[#080808] min-h-screen">
+    <div className={`grain min-h-screen transition-colors duration-500 ${dark ? 'bg-[#080808]' : 'bg-[#f5f5f3]'}`}>
       <Nav />
       <Hero />
       <Work />
@@ -15,5 +17,13 @@ export default function App() {
       <About />
       <Contact />
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppInner />
+    </ThemeProvider>
   )
 }

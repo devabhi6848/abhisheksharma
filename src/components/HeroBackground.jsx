@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useTheme } from '../context/ThemeContext'
 
 const PARTICLE_COUNT = 90
 const MAX_DIST = 160
@@ -10,6 +11,10 @@ export default function HeroBackground() {
   const mouse = useRef({ x: -9999, y: -9999 })
   const particles = useRef([])
   const animRef = useRef(null)
+  const { dark } = useTheme()
+  const darkRef = useRef(dark)
+
+  useEffect(() => { darkRef.current = dark }, [dark])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -30,7 +35,6 @@ export default function HeroBackground() {
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseleave', onLeave)
 
-    // Init particles
     particles.current = Array.from({ length: PARTICLE_COUNT }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
@@ -44,32 +48,30 @@ export default function HeroBackground() {
     const draw = () => {
       const w = canvas.width
       const h = canvas.height
+      const isDark = darkRef.current
       ctx.clearRect(0, 0, w, h)
 
       const mx = mouse.current.x
       const my = mouse.current.y
 
-      // Update particles
+      // node color based on theme
+      const nodeColor = isDark ? '160,160,200' : '80,80,120'
+      const nodeActiveColor = isDark ? '180,160,255' : '100,80,220'
+      const lineColor = isDark ? '180,180,220' : '80,80,160'
+
       particles.current.forEach((p) => {
-        // Mouse repulsion / attraction
         const dx = p.x - mx
         const dy = p.y - my
         const dist = Math.sqrt(dx * dx + dy * dy)
-
         if (dist < MOUSE_RADIUS) {
           const force = (MOUSE_RADIUS - dist) / MOUSE_RADIUS
           p.vx += (dx / dist) * force * MOUSE_FORCE * 8
           p.vy += (dy / dist) * force * MOUSE_FORCE * 8
         }
-
-        // Drift back to base velocity
         p.vx += (p.baseVx - p.vx) * 0.02
         p.vy += (p.baseVy - p.vy) * 0.02
-
         p.x += p.vx
         p.y += p.vy
-
-        // Wrap edges
         if (p.x < 0) p.x = w
         if (p.x > w) p.x = 0
         if (p.y < 0) p.y = h
@@ -84,27 +86,19 @@ export default function HeroBackground() {
           const dx = a.x - b.x
           const dy = a.y - b.y
           const dist = Math.sqrt(dx * dx + dy * dy)
-
           if (dist < MAX_DIST) {
-            const opacity = (1 - dist / MAX_DIST) * 0.35
-
-            // Check if either node is near mouse — highlight that connection
+            const opacity = (1 - dist / MAX_DIST) * (isDark ? 0.35 : 0.25)
             const aDist = Math.sqrt((a.x - mx) ** 2 + (a.y - my) ** 2)
             const bDist = Math.sqrt((b.x - mx) ** 2 + (b.y - my) ** 2)
             const nearMouse = aDist < MOUSE_RADIUS || bDist < MOUSE_RADIUS
-
             ctx.beginPath()
             ctx.moveTo(a.x, a.y)
             ctx.lineTo(b.x, b.y)
-
             if (nearMouse) {
-              const grd = ctx.createLinearGradient(a.x, a.y, b.x, b.y)
-              grd.addColorStop(0, `rgba(124,106,247,${opacity * 2.5})`)
-              grd.addColorStop(1, `rgba(124,106,247,${opacity * 2.5})`)
-              ctx.strokeStyle = grd
+              ctx.strokeStyle = `rgba(124,106,247,${opacity * 2.5})`
               ctx.lineWidth = 0.8
             } else {
-              ctx.strokeStyle = `rgba(180,180,220,${opacity})`
+              ctx.strokeStyle = `rgba(${lineColor},${opacity})`
               ctx.lineWidth = 0.4
             }
             ctx.stroke()
@@ -120,7 +114,6 @@ export default function HeroBackground() {
         const nearMouse = dist < MOUSE_RADIUS
         const proximity = nearMouse ? (1 - dist / MOUSE_RADIUS) : 0
 
-        // Glow for nodes near mouse
         if (nearMouse) {
           ctx.beginPath()
           ctx.arc(p.x, p.y, p.r + 6 * proximity, 0, Math.PI * 2)
@@ -134,18 +127,17 @@ export default function HeroBackground() {
         ctx.beginPath()
         ctx.arc(p.x, p.y, nearMouse ? p.r + 1.5 * proximity : p.r, 0, Math.PI * 2)
         ctx.fillStyle = nearMouse
-          ? `rgba(180,160,255,${0.6 + 0.4 * proximity})`
-          : 'rgba(160,160,200,0.5)'
+          ? `rgba(${nodeActiveColor},${0.7 + 0.3 * proximity})`
+          : `rgba(${nodeColor},${isDark ? 0.5 : 0.4})`
         ctx.fill()
       })
 
-      // Cursor node — big glowing node at mouse
+      // Cursor node
       if (mx > 0 && mx < w) {
         ctx.beginPath()
         ctx.arc(mx, my, 4, 0, Math.PI * 2)
         ctx.fillStyle = 'rgba(124,106,247,0.9)'
         ctx.fill()
-
         const pulse = ctx.createRadialGradient(mx, my, 0, mx, my, 60)
         pulse.addColorStop(0, 'rgba(124,106,247,0.15)')
         pulse.addColorStop(1, 'rgba(124,106,247,0)')
@@ -170,25 +162,15 @@ export default function HeroBackground() {
 
   return (
     <>
-      {/* Soft ambient blobs behind the canvas */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[10%] left-[15%] w-[500px] h-[500px] rounded-full bg-[#7C6AF7]/8 blur-[120px]" />
-        <div className="absolute bottom-[10%] right-[10%] w-[400px] h-[400px] rounded-full bg-[#1e3c78]/10 blur-[140px]" />
+        <div className={`absolute top-[10%] left-[15%] w-[500px] h-[500px] rounded-full blur-[120px] ${dark ? 'bg-[#7C6AF7]/8' : 'bg-[#7C6AF7]/5'}`} />
+        <div className={`absolute bottom-[10%] right-[10%] w-[400px] h-[400px] rounded-full blur-[140px] ${dark ? 'bg-[#1e3c78]/10' : 'bg-[#1e3c78]/6'}`} />
       </div>
-
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-none"
-        style={{ zIndex: 1 }}
-      />
-
-      {/* Grain overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none"
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }} />
+      <div className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-          opacity: 0.03,
-          zIndex: 2,
+          opacity: dark ? 0.03 : 0.02, zIndex: 2,
         }}
       />
     </>
