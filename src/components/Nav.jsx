@@ -73,7 +73,7 @@ export default function Nav() {
             </li>
           ))}
           <li>
-            <a href="/latestporfolio/resume.png" target="_blank" rel="noopener noreferrer" className={linkClass}>
+            <a href="/abhisheksharma/resume.png" target="_blank" rel="noopener noreferrer" className={linkClass}>
               Resume
             </a>
           </li>
@@ -110,7 +110,7 @@ export default function Nav() {
             {links.map((l) => (
               <a key={l} href={`#${l.toLowerCase()}`} onClick={() => setOpen(false)} className={linkClass}>{l}</a>
             ))}
-            <a href="/latestporfolio/resume.png" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} className={linkClass}>
+            <a href="/abhisheksharma/resume.png" target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} className={linkClass}>
               Resume
             </a>
           </motion.div>
